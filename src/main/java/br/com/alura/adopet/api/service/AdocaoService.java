@@ -38,12 +38,7 @@ public class AdocaoService {
 
         validacoes.forEach(v -> v.validar(dto));
 
-        Adocao adocao = new Adocao();
-        adocao.setData(LocalDateTime.now());
-        adocao.setStatus(StatusAdocao.AGUARDANDO_AVALIACAO);
-        adocao.setPet(pet);
-        adocao.setTutor(tutor);
-        adocao.setMotivo(dto.motivo());
+        Adocao adocao = new Adocao(tutor,pet, dto.motivo());
         repository.save(adocao);
 
         emailService.enviarEmail(adocao.getPet().getAbrigo().getEmail(),
@@ -53,7 +48,7 @@ public class AdocaoService {
 
     public void aprovar(AprovacaoAdocaoDto dto){
         var adocao = repository.getReferenceById(dto.idAdocao());
-        adocao.setStatus(StatusAdocao.APROVADO);
+        adocao.marcarComoAprovada();
 
         emailService.enviarEmail(adocao.getPet().getAbrigo().getEmail(),
                 "Adoção aprovada",
@@ -62,9 +57,7 @@ public class AdocaoService {
     }
     public void reprovar(ReprovacaoAdocaoDto dto){
         var adocao = repository.getReferenceById(dto.idAdocao());
-        adocao.setStatus(StatusAdocao.REPROVADO);
-        adocao.setJustificativaStatus(dto.justificativa());
-
+        adocao.marcarComoReprovada(dto.justificativa());
         emailService.enviarEmail(
                 adocao.getPet().getAbrigo().getEmail(),
                 "Adoção reprovada",
